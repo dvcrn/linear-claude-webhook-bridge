@@ -1,0 +1,6 @@
+{
+  "boticorn": {
+    "url": "https://api.anthropic.com/v1/claude_code/routines/<trigger id>/fire",
+    "token": "<routine token>"
+  }
+}

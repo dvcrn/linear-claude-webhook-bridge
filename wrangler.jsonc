@@ -1,42 +1,28 @@
-/**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
- */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "linear-claude-webhook-bridge",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-09-07",
+	"workers_dev": true,
+	"vars": {
+		// Linear user names allowed to trigger the routine with a comment, label or assignment/delegation. A leading "@" is optional.
+		"ALLOWED_ACTORS": ["David"],
+		// Per route (/webhook/<name>), what fires its routine:
+		//   COMMENT_KEYWORDS: a new comment/description (or an edit) adds one of these keywords
+		//   LABELS: an issue gets one of these labels
+		//   ASSIGNEES: an issue is assigned or delegated to one of these names
+		"ROUTE_FILTERS": {
+			"boticorn": { "COMMENT_KEYWORDS": ["@boticorn"], "ASSIGNEES": ["Boticorn"], "LABELS": ["boticorn"] }
+		},
+		// Events sent by these user/app names are dropped so the bot can't trigger itself.
+		"IGNORED_SENDERS": ["Boticorn"]
+	},
+	// Secrets (set with `wrangler secret put`):
+	//   LINEAR_WEBHOOK_SECRET (or CLOUDFLARE_WEBHOOK_SIGNING_SECRET),
+	//   LINEAR_APP_TOKEN,
+	//   ROUTINES (JSON route name -> {url, token}, see README)
 	"observability": {
 		"enabled": true
 	},
 	"upload_source_maps": true
-	/**
-	 * Smart Placement
-	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
-	 */
-	// "placement": {  "mode": "smart" }
-	/**
-	 * Bindings
-	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
-	 * databases, object storage, AI inference, real-time communication and more.
-	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
-	 */
-	/**
-	 * Environment Variables
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
-	 * Note: Use secrets to store sensitive data.
-	 * https://developers.cloudflare.com/workers/configuration/secrets/
-	 */
-	// "vars": {  "MY_VARIABLE": "production_value" }
-	/**
-	 * Static Assets
-	 * https://developers.cloudflare.com/workers/static-assets/binding/
-	 */
-	// "assets": {  "directory": "./public/",  "binding": "ASSETS" }
-	/**
-	 * Service Bindings (communicate between multiple Workers)
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
-	 */
-	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
 }

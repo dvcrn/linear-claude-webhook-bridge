@@ -1,0 +1,5 @@
+# Copy to .dev.vars for `npm run dev`. Fill in your real values there.
+LINEAR_WEBHOOK_SECRET=dev-secret
+LINEAR_APP_TOKEN=lin_oauth_...
+# Route name -> routine. /webhook/<name> forwards to that routine.
+ROUTINES={"boticorn":{"url":"http://localhost:9999/fire","token":"dev-token"}}

@@ -1,0 +1,16 @@
+[tasks.test]
+run = "npm test -- --run"
+
+[tasks.typecheck]
+run = "npx tsc --noEmit"
+
+[tasks.deploy]
+run = "npx wrangler deploy"
+
+[tasks."config:push"]
+description = "Upload config.json to the Worker as the ROUTINES secret"
+run = "jq -c . config.json | npx wrangler secret put ROUTINES"
+
+[tasks."secrets:push"]
+description = "Upload LINEAR_APP_TOKEN from fnox to the Worker"
+run = "fnox get LINEAR_APP_TOKEN | npx wrangler secret put LINEAR_APP_TOKEN"
