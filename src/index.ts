@@ -289,15 +289,15 @@ export function evaluateEvent(
 			if (action !== "create" && action !== "update") return { skip: `action ${action}` };
 			if (!isActor(actor)) return { skip: "actor not allowed" };
 
-			// Watched labels this event added, in their configured spelling. Every
-			// Issue decision carries them, so a routine sees a label added together
-			// with an assignment or mention.
+			// Watched labels this event added, in their configured spelling. Every Issue
+			// trigger carries them, so a routine sees a label added together with an
+			// assignment or mention.
 			const prevLabelIds = new Set(payload.updatedFrom?.labelIds ?? []);
 			const newLabels = (data?.labels ?? []).filter(
 				(l) => action === "create" || (payload.updatedFrom?.labelIds !== undefined && !prevLabelIds.has(l.id ?? "")),
 			);
 			const addedLabels = (Array.isArray(f.LABELS) ? f.LABELS : []).filter((w) =>
-				newLabels.some((l) => nameKey(l.name) === nameKey(w)),
+				includesName(newLabels.map((l) => l.name ?? ""), w),
 			);
 			const labels = addedLabels.length > 0 ? { labels: addedLabels } : {};
 
