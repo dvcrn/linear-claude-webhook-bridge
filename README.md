@@ -61,9 +61,11 @@ These lists gate every route. Anything they reject is dropped:
 
 ```jsonc
 "ROUTE_FILTERS": {
-  "boticorn": { "COMMENT_KEYWORDS": ["@boticorn"], "ASSIGNEES": ["Boticorn"], "LABELS": ["boticorn"] }
+  "boticorn": { "COMMENT_KEYWORDS": ["@boticorn"], "ASSIGNEES": ["Boticorn"], "LABELS": ["boticorn", "boticorn-investigate"] }
 }
 ```
+
+A forwarded `Issue` event that adds watched labels lists them in `added_labels`, spelled as in `LABELS`, even when an assignment or mention fired it. The key is left out when the event added none. A route that watches several labels uses it to tell them apart.
 
 `wrangler.jsonc` sets `ALLOWED_ACTORS` to `David` and `IGNORED_SENDERS` to `Boticorn`. A missing list matches nothing. Names match case-insensitively, and `ALLOWED_ACTORS` and `ASSIGNEES` entries may start with `@`.
 

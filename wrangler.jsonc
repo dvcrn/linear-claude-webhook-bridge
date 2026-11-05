@@ -12,7 +12,7 @@
 		//   LABELS: an issue gets one of these labels
 		//   ASSIGNEES: an issue is assigned or delegated to one of these names
 		"ROUTE_FILTERS": {
-			"boticorn": { "COMMENT_KEYWORDS": ["@boticorn"], "ASSIGNEES": ["Boticorn"], "LABELS": ["boticorn"] }
+			"boticorn": { "COMMENT_KEYWORDS": ["@boticorn"], "ASSIGNEES": ["Boticorn"], "LABELS": ["boticorn", "boticorn-investigate"] }
 		},
 		// Events sent by these user/app names are dropped so the bot can't trigger itself.
 		"IGNORED_SENDERS": ["Boticorn"]

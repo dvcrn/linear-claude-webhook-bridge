@@ -163,7 +163,7 @@ export default {
 		const issueId = payload.data?.issue?.id ?? payload.data?.id;
 		const enrichedIssue =
 			env.LINEAR_APP_TOKEN && issueId ? await fetchIssueContext(env.LINEAR_APP_TOKEN, issueId) : undefined;
-		const text = routineText(event, delivery, payload, decision.trigger, enrichedIssue);
+		const text = routineText(event, delivery, payload, decision.trigger, enrichedIssue, decision.labels);
 
 		if (!routine) {
 			log("would_forward", { route, event, delivery, action: payload.action, trigger: decision.trigger, text });
@@ -262,7 +262,7 @@ export function evaluateEvent(
 	event: string,
 	payload: WebhookPayload,
 	f: Filters,
-): { trigger?: TriggerReason; skip?: string } {
+): { trigger?: TriggerReason; labels?: string[]; skip?: string } {
 	const actor = payload.actor;
 	if (includesName(f.IGNORED_SENDERS, actor?.name)) return { skip: "ignored sender" };
 	if (actor?.type === "app") return { skip: "bot sender" };
@@ -289,6 +289,18 @@ export function evaluateEvent(
 			if (action !== "create" && action !== "update") return { skip: `action ${action}` };
 			if (!isActor(actor)) return { skip: "actor not allowed" };
 
+			// Watched labels this event added, in their configured spelling. Every Issue
+			// trigger carries them, so a routine sees a label added together with an
+			// assignment or mention.
+			const prevLabelIds = new Set(payload.updatedFrom?.labelIds ?? []);
+			const newLabels = (data?.labels ?? []).filter(
+				(l) => action === "create" || (payload.updatedFrom?.labelIds !== undefined && !prevLabelIds.has(l.id ?? "")),
+			);
+			const addedLabels = (Array.isArray(f.LABELS) ? f.LABELS : []).filter((w) =>
+				includesName(newLabels.map((l) => l.name ?? ""), w),
+			);
+			const labels = addedLabels.length > 0 ? { labels: addedLabels } : {};
+
 			// 1. Mention in issue description
 			const keywords = Array.isArray(f.COMMENT_KEYWORDS) ? f.COMMENT_KEYWORDS : [];
 			const matchedKeywords = keywords.filter((k) => mentions(data?.description ?? "", k));
@@ -298,7 +310,7 @@ export function evaluateEvent(
 					(payload.updatedFrom !== undefined &&
 						"description" in payload.updatedFrom &&
 						!matchedKeywords.every((k) => mentions(payload.updatedFrom?.description ?? "", k))));
-			if (descMentioned) return { trigger: "issue_mentioned" };
+			if (descMentioned) return { trigger: "issue_mentioned", ...labels };
 
 			// 2. Assigned or delegated to watched user/agent
 			const assigneeWatched = includesName(f.ASSIGNEES, data?.assignee?.name, actorKey);
@@ -308,17 +320,10 @@ export function evaluateEvent(
 					(action === "create" || (payload.updatedFrom !== undefined && "assigneeId" in payload.updatedFrom))) ||
 				(delegateWatched &&
 					(action === "create" || (payload.updatedFrom !== undefined && "delegateId" in payload.updatedFrom)));
-			if (newlyAssigned) return { trigger: "assigned" };
+			if (newlyAssigned) return { trigger: "assigned", ...labels };
 
 			// 3. Labeled with watched label
-			const prevLabelIds = new Set(payload.updatedFrom?.labelIds ?? []);
-			const addedWatchedLabel = (data?.labels ?? []).some(
-				(l) =>
-					includesName(f.LABELS, l.name) &&
-					(action === "create" ||
-						(payload.updatedFrom?.labelIds !== undefined && !prevLabelIds.has(l.id ?? ""))),
-			);
-			if (addedWatchedLabel) return { trigger: "labeled" };
+			if (addedLabels.length > 0) return { trigger: "labeled", ...labels };
 
 			return { skip: "no trigger matched" };
 		}
@@ -466,8 +471,9 @@ export function routineText(
 	p: WebhookPayload,
 	trigger?: TriggerReason,
 	enriched?: EnrichedIssue,
+	addedLabels?: string[],
 ): string {
-	return `Linear-Event: ${event}\n${JSON.stringify(slimPayload(delivery, p, trigger, enriched), null, 2)}`;
+	return `Linear-Event: ${event}\n${JSON.stringify(slimPayload(delivery, p, trigger, enriched, addedLabels), null, 2)}`;
 }
 
 export function slimPayload(
@@ -475,6 +481,7 @@ export function slimPayload(
 	p: WebhookPayload,
 	trigger?: TriggerReason,
 	enriched?: EnrichedIssue,
+	addedLabels?: string[],
 ): object {
 	const d = p.data;
 	const isComment = p.type === "Comment" || Boolean(d?.issue);
@@ -482,6 +489,8 @@ export function slimPayload(
 	return {
 		delivery: delivery ?? undefined,
 		trigger,
+		// Watched labels this event added (unlike `issue.labels`, which lists all of them).
+		added_labels: addedLabels,
 		action: p.action,
 		actor: p.actor?.name,
 		url: p.url,
