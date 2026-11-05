@@ -65,6 +65,8 @@ These lists gate every route. Anything they reject is dropped:
 }
 ```
 
+Every forwarded `Issue` event lists the watched labels it added in `added_labels`, spelled as in `LABELS`, even when an assignment or mention fired it. A route that watches several labels uses it to tell them apart.
+
 `wrangler.jsonc` sets `ALLOWED_ACTORS` to `David` and `IGNORED_SENDERS` to `Boticorn`. A missing list matches nothing. Names match case-insensitively, and `ALLOWED_ACTORS` and `ASSIGNEES` entries may start with `@`.
 
 The checks run in this order:
