@@ -61,7 +61,7 @@ These lists gate every route. Anything they reject is dropped:
 
 ```jsonc
 "ROUTE_FILTERS": {
-  "boticorn": { "COMMENT_KEYWORDS": ["@boticorn"], "ASSIGNEES": ["Boticorn"], "LABELS": ["boticorn"] }
+  "boticorn": { "COMMENT_KEYWORDS": ["@boticorn"], "ASSIGNEES": ["Boticorn"], "LABELS": ["boticorn", "boticorn-investigate"] }
 }
 ```
 
